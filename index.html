@@ -13,6 +13,7 @@
         :root {
             --primary-color: #00ffff; /* Ciano Neon */
             --secondary-color: #ff00ff; /* Magenta Neon */
+            --tertiary-color: #ffff00; /* Amarelo Neon (para o Quiz) */
             --bg-color: #1a1a1a;
             --text-color: #cccccc;
             --highlight-color: #ffffff;
@@ -80,6 +81,9 @@
             align-items: center;
             gap: 25px; /* Espaço entre os cartões */
             width: 100%;
+            /* Ajusta para telas pequenas, permitindo scroll horizontal se necessário */
+            overflow-x: auto; 
+            padding: 20px 0;
         }
 
         /* --- Cartão de Jogo --- */
@@ -90,6 +94,7 @@
             width: 200px;
             height: 250px;
             cursor: pointer;
+            flex-shrink: 0; /* Impede que os cartões encolham */
             
             /* Efeito de "longe" */
             transform: scale(0.8);
@@ -102,6 +107,11 @@
             font-size: 1rem;
             color: var(--highlight-color);
             margin-bottom: 20px;
+            /* Garante que o texto não quebre estranho */
+            height: 40px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* --- Prévia Visual do Jogo (CSS Art) --- */
@@ -161,10 +171,25 @@
                 -20px 0 0 var(--secondary-color);
             animation: fall 2s infinite linear;
         }
-        @keyframes fall {
-            from { top: -30px; }
-            to { top: 110px; }
+        
+        /* === NOVO CSS === */
+        
+        /* Quiz Art (Novo) */
+        #preview-quiz {
+            align-items: flex-end; /* Coloca o '?' na base */
+            padding-bottom: 10px;
         }
+        
+        #preview-quiz .question-mark {
+            font-size: 4rem;
+            color: var(--tertiary-color); /* Amarelo */
+            text-shadow: 0 0 10px var(--tertiary-color);
+            animation: jump 1.2s infinite ease-in-out;
+            position: relative; /* Para o pulo */
+        }
+        
+        /* === FIM DO NOVO CSS === */
+
 
         /* --- Estado Ativo e Selecionado --- */
         .game-card.active {
@@ -217,6 +242,27 @@
                 text-shadow: none;
             }
         }
+        
+        /* Animação de Queda (Tetris) */
+        @keyframes fall {
+            from { top: -30px; }
+            to { top: 110px; }
+        }
+        
+        /* === NOVA ANIMAÇÃO === */
+        
+        /* Animação de Pulo (Quiz) */
+        @keyframes jump {
+            0%, 100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-35px); /* Pula 35px para cima */
+            }
+        }
+        
+        /* === FIM DA NOVA ANIMAÇÃO === */
+        
     </style>
 </head>
 <body>
@@ -249,15 +295,21 @@
                     <div class="tetromino"></div>
                 </div>
             </div>
-
-        </div>
+            
+            <div class="game-card" data-href="quiz.html">
+                <h2>Quiz Deluxe</h2> <div class="game-preview" id="preview-quiz">
+                    <div class="question-mark">?</div>
+                </div>
+            </div>
+            
+            </div>
 
         <p class="instructions">Use [A/D] ou [Setas] para navegar. [Enter] para selecionar.</p>
 
     </div>
 
     <audio id="move-sound" src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU0DAAAAAQABAgMEBQYHCAkKCwwNDg8AEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpag=="></audio>
-    <audio id="select-sound" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YQAAAAAAAAD//v8A/AD/APgA+wD3APgA+wD7APsA+wD7APsA+wD7APsA+wD7APsA+wD7APgA9wD7APgA+AD5APcAAAD/APsA/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wE="></audio>
+    <audio id="select-sound" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YQAAAAAAAAD//v8A/AD/APgA+wD3APgA+wD7APsA+wD7APsA+wD7APsA+wD7APsA+wD7APgA9wD7APgA+AD5APcAAAD/APsA/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wVd/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wE="></audio>
 
 
     <script>
@@ -317,8 +369,6 @@
             function handleKeyDown(event) {
                 if (!canNavigate) return; // Ignora input durante a seleção
 
-                // Impede o comportamento padrão (rolar a página)
-                // (W, A, S, D não são usados para rolar, mas Setas sim)
                 if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(event.key)) {
                     event.preventDefault();
                 }
@@ -343,7 +393,6 @@
                     case 'w':
                     case 'arrowdown':
                     case 's':
-                        // Não faz nada, mas impede scroll
                         break;
                     
                     // SELECIONAR (Enter ou Espaço)
@@ -363,13 +412,11 @@
             // Adiciona navegação por clique (bônus)
             gameCards.forEach((card, index) => {
                 card.addEventListener('click', () => {
-                    // Se clicar em um cartão que não está ativo, apenas o ativa
                     if (index !== currentGameIndex) {
                         currentGameIndex = index;
                         updateSelection();
                         playSound(moveSound);
                     } else {
-                        // Se clicar no cartão já ativo, seleciona o jogo
                         selectGame();
                     }
                 });
