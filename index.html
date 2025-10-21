@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Game Experiments - Select</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- CSS Integrado --- */
+
+        :root {
+            --primary-color: #00ffff; /* Ciano Neon */
+            --secondary-color: #ff00ff; /* Magenta Neon */
+            --bg-color: #1a1a1a;
+            --text-color: #cccccc;
+            --highlight-color: #ffffff;
+            --scanline-color: rgba(0, 0, 0, 0.3);
+        }
+
+        /* --- Reset e Configuração do Corpo --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            overflow: hidden; /* Impede o scroll */
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Press Start 2P', monospace;
+        }
+
+        /* --- Efeito de Scanlines (Tela Antiga) --- */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent 2px,
+                var(--scanline-color) 2px,
+                var(--scanline-color) 4px
+            );
+            z-index: 1000; /* Fica por cima de tudo */
+        }
+
+        /* --- Contêiner Principal --- */
+        .screen-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* --- Título --- */
+        .title {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-color), 0 0 5px #fff;
+            margin-bottom: 50px;
+            animation: flicker 3s infinite alternate;
+        }
+
+        /* --- Carrossel de Seleção --- */
+        .selection-carousel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px; /* Espaço entre os cartões */
+            width: 100%;
+        }
+
+        /* --- Cartão de Jogo --- */
+        .game-card {
+            background: #2b2b2b;
+            border: 3px solid var(--text-color);
+            padding: 20px;
+            width: 200px;
+            height: 250px;
+            cursor: pointer;
+            
+            /* Efeito de "longe" */
+            transform: scale(0.8);
+            opacity: 0.6;
+            
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .game-card h2 {
+            font-size: 1rem;
+            color: var(--highlight-color);
+            margin-bottom: 20px;
+        }
+
+        /* --- Prévia Visual do Jogo (CSS Art) --- */
+        .game-preview {
+            width: 100%;
+            height: 120px;
+            background: #000;
+            border: 2px solid var(--text-color);
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Snake Art */
+        #preview-snake .snake-body {
+            width: 10px;
+            height: 10px;
+            background-color: var(--primary-color);
+            box-shadow: 
+                10px 0 0 var(--primary-color),
+                20px 0 0 var(--primary-color),
+                20px 10px 0 var(--primary-color),
+                20px 20px 0 var(--primary-color),
+                30px 20px 0 var(--primary-color);
+        }
+
+        /* Pong Art */
+        #preview-pong {
+            justify-content: space-between;
+            padding: 10px;
+        }
+        #preview-pong .paddle {
+            width: 10px;
+            height: 40px;
+            background-color: var(--primary-color);
+        }
+        #preview-pong .ball {
+            width: 10px;
+            height: 10px;
+            background-color: var(--highlight-color);
+        }
+
+        /* Tetris Art */
+        #preview-tetris {
+            position: relative;
+        }
+        #preview-tetris .tetromino {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: var(--secondary-color);
+            box-shadow: 
+                20px 0 0 var(--secondary-color),
+                0 20px 0 var(--secondary-color),
+                -20px 0 0 var(--secondary-color);
+            animation: fall 2s infinite linear;
+        }
+        @keyframes fall {
+            from { top: -30px; }
+            to { top: 110px; }
+        }
+
+        /* --- Estado Ativo e Selecionado --- */
+        .game-card.active {
+            /* Efeito de "perto" */
+            transform: scale(1.1);
+            opacity: 1;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 25px var(--primary-color);
+        }
+
+        .game-card.selected {
+            /* Animação de seleção */
+            animation: select-pulse 0.5s;
+        }
+
+        @keyframes select-pulse {
+            0% { transform: scale(1.1); }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+
+        /* --- Instruções --- */
+        .instructions {
+            margin-top: 50px;
+            font-size: 0.9rem;
+            color: var(--highlight-color);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* --- Animação do Título --- */
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow:
+                    0 0 4px #fff,
+                    0 0 11px #fff,
+                    0 0 19px #fff,
+                    0 0 40px var(--primary-color),
+                    0 0 80px var(--primary-color),
+                    0 0 90px var(--primary-color),
+                    0 0 100px var(--primary-color),
+                    0 0 150px var(--primary-color);
+            }
+            20%, 24%, 55% {        
+                text-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="screen-container">
+        
+        <h1 class="title">HTML-GAME-EXPERIMENTS</h1>
+
+        <div class="selection-carousel" id="carousel">
+            
+            <div class="game-card" data-href="snake.html">
+                <h2>Snake</h2>
+                <div class="game-preview" id="preview-snake">
+                    <div class="snake-body"></div>
+                </div>
+            </div>
+
+            <div class="game-card" data-href="pong.html">
+                <h2>Pong</h2>
+                <div class="game-preview" id="preview-pong">
+                    <div class="paddle"></div>
+                    <div class="ball"></div>
+                    <div class="paddle"></div>
+                </div>
+            </div>
+
+            <div class="game-card" data-href="tetris.html">
+                <h2>Tetris</h2>
+                <div class="game-preview" id="preview-tetris">
+                    <div class="tetromino"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <p class="instructions">Use [A/D] ou [Setas] para navegar. [Enter] para selecionar.</p>
+
+    </div>
+
+    <audio id="move-sound" src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU0DAAAAAQABAgMEBQYHCAkKCwwNDg8AEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpag=="></audio>
+    <audio id="select-sound" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABgAZGF0YQAAAAAAAAD//v8A/AD/APgA+wD3APgA+wD7APsA+wD7APsA+wD7APsA+wD7APsA+wD7APgA9wD7APgA+AD5APcAAAD/APsA/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wE="></audio>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // Seleciona os elementos
+            const gameCards = document.querySelectorAll('.game-card');
+            const moveSound = document.getElementById('move-sound');
+            const selectSound = document.getElementById('select-sound');
+            
+            let currentGameIndex = 0;
+            let canNavigate = true; // Impede spam de teclas
+
+            // Função para tocar sons
+            function playSound(sound) {
+                sound.currentTime = 0; // Reinicia o som
+                sound.play();
+            }
+
+            // Função para atualizar a seleção visual
+            function updateSelection() {
+                gameCards.forEach((card, index) => {
+                    if (index === currentGameIndex) {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+                });
+            }
+
+            // Função para selecionar o jogo
+            function selectGame() {
+                if (!canNavigate) return; // Se já está selecionando, não faz nada
+                canNavigate = false;
+
+                const selectedCard = gameCards[currentGameIndex];
+                const destination = selectedCard.dataset.href;
+
+                // Toca som e adiciona animação
+                playSound(selectSound);
+                selectedCard.classList.add('selected');
+
+                // Espera a animação de seleção (500ms) terminar antes de redirecionar
+                setTimeout(() => {
+                    if (destination && destination !== "#") {
+                        window.location.href = destination;
+                    } else {
+                        console.warn(`Nenhuma URL de destino (data-href) definida para o cartão ${currentGameIndex}`);
+                        // Se não houver link, apenas reseta a navegação
+                        selectedCard.classList.remove('selected');
+                        canNavigate = true;
+                    }
+                }, 500); 
+            }
+
+            // Função para lidar com o pressionamento de teclas
+            function handleKeyDown(event) {
+                if (!canNavigate) return; // Ignora input durante a seleção
+
+                // Impede o comportamento padrão (rolar a página)
+                // (W, A, S, D não são usados para rolar, mas Setas sim)
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(event.key)) {
+                    event.preventDefault();
+                }
+
+                switch(event.key.toLowerCase()) {
+                    // Mover para a ESQUERDA
+                    case 'arrowleft':
+                    case 'a':
+                        currentGameIndex = (currentGameIndex > 0) ? currentGameIndex - 1 : gameCards.length - 1; // Dá a volta
+                        playSound(moveSound);
+                        break;
+                    
+                    // Mover para a DIREITA
+                    case 'arrowright':
+                    case 'd':
+                        currentGameIndex = (currentGameIndex < gameCards.length - 1) ? currentGameIndex + 1 : 0; // Dá a volta
+                        playSound(moveSound);
+                        break;
+                    
+                    // Ignora W e S
+                    case 'arrowup':
+                    case 'w':
+                    case 'arrowdown':
+                    case 's':
+                        // Não faz nada, mas impede scroll
+                        break;
+                    
+                    // SELECIONAR (Enter ou Espaço)
+                    case 'enter':
+                    case ' ':
+                        selectGame();
+                        break;
+                }
+
+                // Atualiza a interface
+                updateSelection();
+            }
+
+            // Adiciona "ouvintes" de eventos
+            document.addEventListener('keydown', handleKeyDown);
+
+            // Adiciona navegação por clique (bônus)
+            gameCards.forEach((card, index) => {
+                card.addEventListener('click', () => {
+                    // Se clicar em um cartão que não está ativo, apenas o ativa
+                    if (index !== currentGameIndex) {
+                        currentGameIndex = index;
+                        updateSelection();
+                        playSound(moveSound);
+                    } else {
+                        // Se clicar no cartão já ativo, seleciona o jogo
+                        selectGame();
+                    }
+                });
+            });
+
+
+            // Inicia o menu selecionando o primeiro item
+            updateSelection();
+        });
+    </script>
+
+</body>
+</html>
